@@ -1,18 +1,19 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { createStackNavigator, TransitionPresets } from '@react-navigation/stack';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import 'react-native-reanimated';
+import { Platform } from 'react-native';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+import HomeScreen from './screens/HomeScreen';
+import AnimalsScreen from './screens/AnimalsScreen';
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
+const Stack = createStackNavigator();
+
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
@@ -28,11 +29,21 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
+    <ThemeProvider value={DefaultTheme}>
+      <Stack.Navigator
+        screenOptions={{
+          ...Platform.select({
+            android: TransitionPresets.FadeFromBottomAndroid, // ✅ אנימציית כניסה הדרגתית באנדרואיד
+            ios: TransitionPresets.ModalSlideFromBottomIOS, // ✅ החלקה מלמטה באייפון
+            default: TransitionPresets.ScaleFromCenterAndroid, // ✅ מעבר זום בברירת מחדל
+          }),
+          gestureEnabled: true, // ✅ מאפשר החלקת מסכים עם מחוות
+          headerShown: false, // ❌ מסתיר את כותרות המסכים
+        }}
+      >
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Animals" component={AnimalsScreen} />
+      </Stack.Navigator>
       <StatusBar style="auto" />
     </ThemeProvider>
   );
